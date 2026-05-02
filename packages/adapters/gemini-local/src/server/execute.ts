@@ -397,9 +397,15 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       );
     }
   }
+  const briefingMode = process.env.PAPERCLIP_BRIEFING_MODE === "1";
+  const approvalMode = briefingMode ? "plan" : "yolo";
   const commandNotes = (() => {
     const notes: string[] = ["Prompt is passed to Gemini via --prompt for non-interactive execution."];
-    notes.push("Added --approval-mode yolo for unattended execution.");
+    notes.push(
+      briefingMode
+        ? "Added --approval-mode plan (PAPERCLIP_BRIEFING_MODE=1, read-only briefing mode)."
+        : "Added --approval-mode yolo for unattended execution.",
+    );
     if (!instructionsFilePath) return notes;
     if (instructionsPrefix.length > 0) {
       notes.push(
@@ -457,7 +463,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     const args = ["--output-format", "stream-json"];
     if (resumeSessionId) args.push("--resume", resumeSessionId);
     if (model && model !== DEFAULT_GEMINI_LOCAL_MODEL) args.push("--model", model);
-    args.push("--approval-mode", "yolo");
+    args.push("--approval-mode", approvalMode);
     if (sandbox) {
       args.push("--sandbox");
     } else {
